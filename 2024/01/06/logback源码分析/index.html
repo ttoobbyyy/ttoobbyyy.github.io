@@ -1,0 +1,784 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="jianren.xiao">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="引子最近排查一个线上异常，发现起因是日志打印不完整，使用的日志框架正是 logback，在排查问题的过程中深入学习了相关源码，虽然最后没有得到可靠的结论，排查过程中没有发现有对单条日志大小进行限制的配置，我认为是数据落盘的时候丢失了一部分。 slf4jJava 的日志框架常用的有 log4j、logback、jul(common-log)以及 log4j2。为了实现不同日志框架之间的无缝切换，Ce">
+<meta property="og:type" content="article">
+<meta property="og:title" content="logback源码分析">
+<meta property="og:url" content="http://ttoobbyyy.github.io/2024/01/06/logback%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="阳光下的猫">
+<meta property="og:description" content="引子最近排查一个线上异常，发现起因是日志打印不完整，使用的日志框架正是 logback，在排查问题的过程中深入学习了相关源码，虽然最后没有得到可靠的结论，排查过程中没有发现有对单条日志大小进行限制的配置，我认为是数据落盘的时候丢失了一部分。 slf4jJava 的日志框架常用的有 log4j、logback、jul(common-log)以及 log4j2。为了实现不同日志框架之间的无缝切换，Ce">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240107192051.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240107192117.png">
+<meta property="article:published_time" content="2024-01-06T09:07:00.000Z">
+<meta property="article:modified_time" content="2024-07-20T16:45:10.680Z">
+<meta property="article:author" content="jianren.xiao">
+<meta property="article:tag" content="日志">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240107192051.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>logback源码分析 - 阳光下的猫</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ttoobbyyy.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Toby&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="logback源码分析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-01-06 17:07" pubdate>
+          2024年1月6日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          78 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">logback源码分析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h3><p>最近排查一个线上异常，发现起因是日志打印不完整，使用的日志框架正是 logback，在排查问题的过程中深入学习了相关源码，虽然最后没有得到可靠的结论，排查过程中没有发现有对单条日志大小进行限制的配置，我认为是数据落盘的时候丢失了一部分。</p>
+<h3 id="slf4j"><a href="#slf4j" class="headerlink" title="slf4j"></a>slf4j</h3><p>Java 的日志框架常用的有 log4j、logback、jul(common-log)以及 log4j2。为了实现不同日志框架之间的无缝切换，Ceki Gülcü 大神开发了 slf4j(Simple Logging Facade for Java) 。slf4j 是众多日志框架抽象的门面接口，有了 slf4j 想要切换日志实现，只需要把对应日志 jar 替换和添加对应的适配器。<br><img src="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240107192051.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="抽象概念"><a href="#抽象概念" class="headerlink" title="抽象概念"></a>抽象概念</h3><p>logback 日志框架提出的抽象概念比较少，易于理解。只有 logger 和 appender，而且这两个概念还可以通过配置文件来理解其作用。</p>
+<blockquote>
+<p>Java 对抽象设计的要求会比较高一些，对于一个框架来说，理解了它核心抽象，那基本就理解了它的核心实现。对于我们学习源码来说，分析清楚作者为什么要设计这个抽象，为什么不能再细分？也是一个不错的思考点。</p>
+</blockquote>
+<h4 id="logger"><a href="#logger" class="headerlink" title="logger"></a>logger</h4><p>主要功能有两个：</p>
+<ul>
+<li>谁来打印日志，也就是日志的数据源来自哪里</li>
+<li>控制打印的日志级别<br>再看看配置文件中是如何配置它的：<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">logger</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;promotion_middle_result_logger&quot;</span>&gt;</span>  <br>    <span class="hljs-tag">&lt;<span class="hljs-name">level</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;INFO&quot;</span> /&gt;</span>  %% 配置日志级别 %%<br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;asyncPromotionMidResulAppender&quot;</span>/&gt;</span>  %% 绑定appender %%<br><span class="hljs-tag">&lt;/<span class="hljs-name">logger</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">root</span> <span class="hljs-attr">level</span>=<span class="hljs-string">&quot;WARN&quot;</span>&gt;</span>  <br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;consoleAsync&quot;</span>/&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">root</span>&gt;</span><br></code></pre></td></tr></table></figure>
+ch.qos.logback.classic.Logger 的所有属性如下：<br><img src="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240107192117.png" srcset="/img/loading.gif" lazyload></li>
+</ul>
+<p>需要注意的有三点：</p>
+<ol>
+<li><code>parent</code> 和 <code>childrenList</code> 维护了一个 Logger 的继承树，继承是依据 name 来的，以 name 中的“.”划分层级。所有继承树的根节点是 <code>Root</code>。它的作用是子节点可以继承父节点的配置，日志级别，appender 等</li>
+<li><code>loggerContext</code> 用于生成 logger，一般来说，context 都会包含整个处理逻辑最重要的信息</li>
+<li><code>AppenderAttachableImpl</code> 是指配置的 appender 信息</li>
+</ol>
+<h4 id="Appender"><a href="#Appender" class="headerlink" title="Appender"></a>Appender</h4><p>主要功能是指定日志输出到哪里，但也有一些附加功能：</p>
+<ol>
+<li>指定日志输出位置：console、file、数据库等</li>
+<li>encoder：指定日志打印格式</li>
+<li>还有一些额外配置，如文件大小，文件名格式等<br>看配置信息：<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">appender</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;promotionMidResulAppender&quot;</span>&gt;</span>  <br>    <span class="hljs-tag">&lt;<span class="hljs-name">file</span>&gt;</span>$&#123;LOG_HOME&#125;/promotion_middle_result.log<span class="hljs-tag">&lt;/<span class="hljs-name">file</span>&gt;</span>  <br>    <span class="hljs-comment">&lt;!--文件滚动保存策略--&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">rollingPolicy</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;</span>&gt;</span> <br>        <span class="hljs-tag">&lt;<span class="hljs-name">fileNamePattern</span>&gt;</span>$&#123;LOG_HOME&#125;/promotion_middle_result.log.%d&#123;yyyy-MM-dd-HH&#125;.gz<span class="hljs-tag">&lt;/<span class="hljs-name">fileNamePattern</span>&gt;</span>  <br>        <span class="hljs-tag">&lt;<span class="hljs-name">maxHistory</span>&gt;</span>10<span class="hljs-tag">&lt;/<span class="hljs-name">maxHistory</span>&gt;</span>  <br>    <span class="hljs-tag">&lt;/<span class="hljs-name">rollingPolicy</span>&gt;</span>  <br>    <span class="hljs-comment">&lt;!--日志输出格式--&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">encoder</span>&gt;</span>  <br>        <span class="hljs-tag">&lt;<span class="hljs-name">pattern</span>&gt;</span>[%d&#123;yyyy-MM-dd HH:mm:ss&#125;] %m%n<span class="hljs-tag">&lt;/<span class="hljs-name">pattern</span>&gt;</span>  <br>    <span class="hljs-tag">&lt;/<span class="hljs-name">encoder</span>&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span>  <br><br><span class="hljs-comment">&lt;!--异步输出的配置--&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">appender</span>  <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;asyncPromotionMidResulAppender&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.classic.AsyncAppender&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;promotionMidResulAppender&quot;</span>/&gt;</span>  <br>    <span class="hljs-tag">&lt;<span class="hljs-name">queueSize</span>&gt;</span>1500<span class="hljs-tag">&lt;/<span class="hljs-name">queueSize</span>&gt;</span>  <br>    <span class="hljs-tag">&lt;<span class="hljs-name">discardingThreshold</span>&gt;</span>0<span class="hljs-tag">&lt;/<span class="hljs-name">discardingThreshold</span>&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span><br></code></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h3><h4 id="LogContext-初始化"><a href="#LogContext-初始化" class="headerlink" title="LogContext 初始化"></a>LogContext 初始化</h4><p>步骤 1：<br>logContext 的初始化是从获取 logger 开始的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">log</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(<span class="hljs-string">&quot;promotion_middle_result.logger&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>步骤 2：<br>org.slf4j.LoggerFactory # getLogger (java.lang.String)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Logger <span class="hljs-title function_">getLogger</span><span class="hljs-params">(String name)</span> &#123;  <br>  <span class="hljs-type">ILoggerFactory</span> <span class="hljs-variable">iLoggerFactory</span> <span class="hljs-operator">=</span> getILoggerFactory(); <span class="hljs-comment">// logContext初始化</span><br>  <span class="hljs-keyword">return</span> iLoggerFactory.getLogger(name);  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 3：<br>org.slf4j.LoggerFactory # getILoggerFactory</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ILoggerFactory <span class="hljs-title function_">getILoggerFactory</span><span class="hljs-params">()</span> &#123;  <br>  <span class="hljs-comment">// 由状态字段来控制是否初始化好了</span><br>  <span class="hljs-keyword">if</span> (INITIALIZATION_STATE == UNINITIALIZED) &#123;  <br>    INITIALIZATION_STATE = ONGOING_INITIALIZATION;  <br>    performInitialization();  <br>  &#125;  <br>  <span class="hljs-keyword">switch</span> (INITIALIZATION_STATE) &#123;  <br>    <span class="hljs-keyword">case</span> SUCCESSFUL_INITIALIZATION:  <br>      <span class="hljs-keyword">return</span> StaticLoggerBinder.getSingleton().getLoggerFactory();  <br>    <span class="hljs-keyword">case</span> NOP_FALLBACK_INITIALIZATION:  <br>      <span class="hljs-keyword">return</span> NOP_FALLBACK_FACTORY;  <br>    <span class="hljs-keyword">case</span> FAILED_INITIALIZATION:  <br>      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(UNSUCCESSFUL_INIT_MSG);  <br>    <span class="hljs-keyword">case</span> ONGOING_INITIALIZATION:  <br>      <span class="hljs-comment">// support re-entrant behavior.  </span><br>      <span class="hljs-comment">// See also http://bugzilla.slf4j.org/show_bug.cgi?id=106      </span><br>      <span class="hljs-keyword">return</span> TEMP_FACTORY;  <br>  &#125;<br>  <span class="hljs-comment">// 这种写法可以借鉴</span><br>  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Unreachable code&quot;</span>);  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里的 <code>INITIALIZATION_STATE</code> 字段没有使用 volatile 修饰，因为对这个值的读写过程并没有并发安全问题。后面会看到 logContext 的初始化是借助类加载过程初始化的，只会执行一次</p>
+<p>步骤 4：<br>org.slf4j.LoggerFactory # performInitialization</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">performInitialization</span><span class="hljs-params">()</span> &#123;<br>  <span class="hljs-comment">// 开始要绑定日志框架了，slf4j毕竟就是一个门面框架</span><br>  bind();  <br>  <span class="hljs-keyword">if</span> (INITIALIZATION_STATE == SUCCESSFUL_INITIALIZATION) &#123;  <br>    versionSanityCheck();  <br>  &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 5：<br>org.slf4j.LoggerFactory # bind</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">bind</span><span class="hljs-params">()</span> &#123;  <br>  <span class="hljs-keyword">try</span> &#123;  <br>    <span class="hljs-comment">// 找到所有可以绑定的日志框架，依据是org/slf4j/impl/StaticLoggerBinder.class类</span><br>    <span class="hljs-type">Set</span> <span class="hljs-variable">staticLoggerBinderPathSet</span> <span class="hljs-operator">=</span> findPossibleStaticLoggerBinderPathSet();<br>    <span class="hljs-comment">// 提示有多个日志框架可用</span><br>    reportMultipleBindingAmbiguity(staticLoggerBinderPathSet);  <br>    <span class="hljs-comment">// 这里其实是为了将StaticLoggerBinder加载入内存</span><br>    StaticLoggerBinder.getSingleton();  <br>    INITIALIZATION_STATE = SUCCESSFUL_INITIALIZATION;  <br>    reportActualBinding(staticLoggerBinderPathSet);  <br>    emitSubstituteLoggerWarning();  <br>  &#125; <span class="hljs-keyword">catch</span> (NoClassDefFoundError ncde) &#123;  <br>    ...<br>  &#125; <span class="hljs-keyword">catch</span> (java.lang.NoSuchMethodError nsme) &#123;  <br>    ...<br>  &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;  <br>    failedBinding(e);  <br>    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Unexpected initialization failure&quot;</span>, e);  <br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里的逻辑断层了，可能会无法理解，该如何初始化 logContext（ps：其中一个重要步骤是解析 <code>logback.xml</code>），一般遇到这种情况，只能根据前一个步骤提示的 org&#x2F;slf4j&#x2F;impl&#x2F;StaticLoggerBinder.class 来找线索了</p>
+<blockquote>
+<p>这里还有个感受是，源码注释并不多，但是并不妨碍理解，函数名命名的很讲究。不过我们平时写业务代码时，还是最好加上中文注释，方便后面人全局搜索</p>
+</blockquote>
+<p>步骤 6：<br>org.slf4j.impl.StaticLoggerBinder # init</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">void</span> <span class="hljs-title function_">init</span><span class="hljs-params">()</span> &#123;  <br>    <span class="hljs-keyword">try</span> &#123;  <br>        <span class="hljs-keyword">try</span> &#123;  <br>		    <span class="hljs-comment">// 配置文件在这里加载</span><br>            <span class="hljs-keyword">new</span> <span class="hljs-title class_">ContextInitializer</span>(defaultLoggerContext).autoConfig();  <br>        &#125; <span class="hljs-keyword">catch</span> (JoranException je) &#123;  <br>            Util.report(<span class="hljs-string">&quot;Failed to auto configure default logger context&quot;</span>, je);  <br>        &#125;  <br>        <span class="hljs-comment">// logback-292</span><br>        <span class="hljs-keyword">if</span> (!StatusUtil.contextHasStatusListener(defaultLoggerContext)) &#123;  <br>            StatusPrinter.printInCaseOfErrorsOrWarnings(defaultLoggerContext);  <br>        &#125;  <br>        contextSelectorBinder.init(defaultLoggerContext, KEY);  <br>        initialized = <span class="hljs-literal">true</span>;  <br>    &#125; <span class="hljs-keyword">catch</span> (Exception t) &#123; <span class="hljs-comment">// see LOGBACK-1159  </span><br>        Util.report(<span class="hljs-string">&quot;Failed to instantiate [&quot;</span> + LoggerContext.class.getName() + <span class="hljs-string">&quot;]&quot;</span>, t);  <br>    &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其他细节就不看了，这里解析了配置文件，并初始化了 <code>logContext</code> 对象</p>
+<h4 id="日志打印"><a href="#日志打印" class="headerlink" title="日志打印"></a>日志打印</h4><p>日志框架会将每一条日志当作了一个事件来处理。如果是同步打印，那么就是直接写入文件。如果是异步打印，则会用一个队列来收集事件，最后由日志线程来遍历队列写入文件。<br>这里我将分析异步过程。<br>步骤 1：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">filterAndLog_0_Or3Plus</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String localFQCN, <span class="hljs-keyword">final</span> Marker marker, <span class="hljs-keyword">final</span> Level level, <span class="hljs-keyword">final</span> String msg, <span class="hljs-keyword">final</span> Object[] params,  </span><br><span class="hljs-params">                <span class="hljs-keyword">final</span> Throwable t)</span> &#123;  <br>  <br>    <span class="hljs-keyword">final</span> <span class="hljs-type">FilterReply</span> <span class="hljs-variable">decision</span> <span class="hljs-operator">=</span> loggerContext.getTurboFilterChainDecision_0_3OrMore(marker, <span class="hljs-built_in">this</span>, level, msg, params, t);  <br>   <span class="hljs-comment">// 判断日志级别</span><br>    <span class="hljs-keyword">if</span> (decision == FilterReply.NEUTRAL) &#123;  <br>        <span class="hljs-keyword">if</span> (effectiveLevelInt &gt; level.levelInt) &#123;  <br>            <span class="hljs-keyword">return</span>;  <br>        &#125;  <br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (decision == FilterReply.DENY) &#123;  <br>        <span class="hljs-keyword">return</span>;  <br>    &#125;<br>    <span class="hljs-comment">// 构建LoggingEvent对象</span><br>    buildLoggingEventAndAppend(localFQCN, marker, level, msg, params, t);  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 2：<br>ch.qos.logback.classic.Logger # buildLoggingEventAndAppend</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">buildLoggingEventAndAppend</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String localFQCN, <span class="hljs-keyword">final</span> Marker marker, <span class="hljs-keyword">final</span> Level level, <span class="hljs-keyword">final</span> String msg, <span class="hljs-keyword">final</span> Object[] params,  </span><br><span class="hljs-params">                <span class="hljs-keyword">final</span> Throwable t)</span> &#123;  <br>    <span class="hljs-comment">// 这个对象包含的信息很多</span><br>    <span class="hljs-type">LoggingEvent</span> <span class="hljs-variable">le</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LoggingEvent</span>(localFQCN, <span class="hljs-built_in">this</span>, level, msg, t, params);  <br>    le.setMarker(marker);  <br>    callAppenders(le);  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 3：<br>ch.qos.logback.classic.Logger # callAppenders</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">callAppenders</span><span class="hljs-params">(ILoggingEvent event)</span> &#123;  <br>    <span class="hljs-type">int</span> <span class="hljs-variable">writes</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;  <br>    <span class="hljs-comment">// 这里遍历了logger继承树</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">Logger</span> <span class="hljs-variable">l</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">this</span>; l != <span class="hljs-literal">null</span>; l = l.parent) &#123;  <br>	    <span class="hljs-comment">// 遍历这个logger绑定的appenders</span><br>        writes += l.appendLoopOnAppenders(event); <br>        <span class="hljs-keyword">if</span> (!l.additive) &#123;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;  <br>    <span class="hljs-comment">// No appenders in hierarchy  </span><br>    <span class="hljs-keyword">if</span> (writes == <span class="hljs-number">0</span>) &#123;  <br>        loggerContext.noAppenderDefinedWarning(<span class="hljs-built_in">this</span>);  <br>    &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 4：<br>ch.qos.logback.core.spi.AppenderAttachableImpl # appendLoopOnAppenders</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">appendLoopOnAppenders</span><span class="hljs-params">(E e)</span> &#123;  <br>    <span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;  <br>    <span class="hljs-keyword">final</span> Appender&lt;E&gt;[] appenderArray = appenderList.asTypedArray();  <br>    <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">len</span> <span class="hljs-operator">=</span> appenderArray.length;  <br>    <span class="hljs-comment">// 遍历appender</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; len; i++) &#123;  <br>        appenderArray[i].doAppend(e);  <br>        size++;  <br>    &#125;<br>    <span class="hljs-keyword">return</span> size;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 5：<br>ch.qos.logback.core.AsyncAppenderBase # append</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">append</span><span class="hljs-params">(E eventObject)</span> &#123;  <br>    <span class="hljs-keyword">if</span> (isQueueBelowDiscardingThreshold() &amp;&amp; isDiscardable(eventObject)) &#123;  <br>        <span class="hljs-keyword">return</span>;  <br>    &#125;  <br>    preprocess(eventObject);  <br>    put(eventObject);  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 6：<br>ch.qos.logback.core.AsyncAppenderBase # put</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(E eventObject)</span> &#123;  <br>    <span class="hljs-keyword">if</span> (neverBlock) &#123;<br>	    <span class="hljs-comment">// 队列满了就直接丢弃</span><br>        blockingQueue.offer(eventObject);  <br>    &#125; <span class="hljs-keyword">else</span> &#123;  <br>	    <span class="hljs-comment">// 这里会阻塞一下</span><br>        putUninterruptibly(eventObject);  <br>    &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到这里业务线程就执行完毕了，主要是将 <code>loggingEvent</code> 放入队列。接下来视角切换到日志线程。</p>
+<p>步骤 7：<br>ch.qos.logback.core.AsyncAppenderBase.Worker # run</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;  <br>    AsyncAppenderBase&lt;E&gt; parent = AsyncAppenderBase.<span class="hljs-built_in">this</span>;  <br>    AppenderAttachableImpl&lt;E&gt; aai = parent.aai;  <br>  <br>    <span class="hljs-comment">// loop while the parent is started  </span><br>    <span class="hljs-keyword">while</span> (parent.isStarted()) &#123;  <br>        <span class="hljs-keyword">try</span> &#123;  <br>	        <span class="hljs-comment">// 遍历队列元素</span><br>            <span class="hljs-type">E</span> <span class="hljs-variable">e</span> <span class="hljs-operator">=</span> parent.blockingQueue.take();  <br>            aai.appendLoopOnAppenders(e);  <br>        &#125; <span class="hljs-keyword">catch</span> (InterruptedException ie) &#123;  <br>            <span class="hljs-keyword">break</span>;  <br>        &#125;  <br>    &#125;  <br>  <br>    addInfo(<span class="hljs-string">&quot;Worker thread will flush remaining events before exiting. &quot;</span>);  <br>  <br>    <span class="hljs-keyword">for</span> (E e : parent.blockingQueue) &#123;  <br>        aai.appendLoopOnAppenders(e);  <br>        parent.blockingQueue.remove(e);  <br>    &#125;  <br>  <br>    aai.detachAndStopAllAppenders();  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 8：<br>ch.qos.logback.core.spi.AppenderAttachableImpl # appendLoopOnAppenders</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">appendLoopOnAppenders</span><span class="hljs-params">(E e)</span> &#123;  <br>    <span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;  <br>    <span class="hljs-keyword">final</span> Appender&lt;E&gt;[] appenderArray = appenderList.asTypedArray();  <br>    <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">len</span> <span class="hljs-operator">=</span> appenderArray.length;  <br>    <span class="hljs-comment">// 还是需要遍历appender</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; len; i++) &#123;  <br>        appenderArray[i].doAppend(e);  <br>        size++;  <br>    &#125;  <br>    <span class="hljs-keyword">return</span> size;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>步骤 9：<br>ch.qos.logback.core.OutputStreamAppender # subAppend</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">subAppend</span><span class="hljs-params">(E event)</span> &#123;  <br>    <span class="hljs-keyword">if</span> (!isStarted()) &#123;  <br>        <span class="hljs-keyword">return</span>;  <br>    &#125;  <br>    <span class="hljs-keyword">try</span> &#123;  <br>        <span class="hljs-comment">// this step avoids LBCLASSIC-139  </span><br>        <span class="hljs-keyword">if</span> (event <span class="hljs-keyword">instanceof</span> DeferredProcessingAware) &#123;  <br>            ((DeferredProcessingAware) event).prepareForDeferredProcessing();  <br>        &#125;  <br>        <span class="hljs-comment">// the synchronization prevents the OutputStream from being closed while we  </span><br>        <span class="hljs-comment">// are writing. It also prevents multiple threads from entering the same        // converter. Converters assume that they are in a synchronized block.        // lock.lock();  </span><br>        <span class="hljs-comment">// 日志格式化输出在这里</span><br>        <span class="hljs-type">byte</span>[] byteArray = <span class="hljs-built_in">this</span>.encoder.encode(event);  <br>        <span class="hljs-comment">// 这里就直接写入文件了</span><br>        writeBytes(byteArray);  <br>  <br>    &#125; <span class="hljs-keyword">catch</span> (IOException ioe) &#123;  <br>        <span class="hljs-comment">// as soon as an exception occurs, move to non-started state  </span><br>        <span class="hljs-comment">// and add a single ErrorStatus to the SM.        this.started = false;  </span><br>        addStatus(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ErrorStatus</span>(<span class="hljs-string">&quot;IO failure in appender&quot;</span>, <span class="hljs-built_in">this</span>, ioe));  <br>    &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文从 <code>logContext初始化</code> 和 <code>日志打印流程</code> 两个角度分析 logback 的源码。整体流程并不复杂，可以自己去多点几次。<br>个人认为看源码是需要学习到一些东西的，比如设计模式，代码格式，函数命名等之类的。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%B7%A5%E5%85%B7%E6%A1%86%E6%9E%B6/" class="category-chain-item">工具框架</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%97%A5%E5%BF%97/" class="print-no-link">#日志</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>logback源码分析</div>
+      <div>http://ttoobbyyy.github.io/2024/01/06/logback源码分析/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>jianren.xiao</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年1月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/01/27/DDD%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="DDD学习笔记">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">DDD学习笔记</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/12/26/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E9%9A%94%E7%A6%BB%E6%80%A7%E4%B8%8EMVCC%EF%BC%883%EF%BC%89/" title="数据库事务--隔离性与MVCC（3）">
+                        <span class="hidden-mobile">数据库事务--隔离性与MVCC（3）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'ttoobbyyy/ttoobbyyy.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
