@@ -20,7 +20,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="数据库事务--隔离性与MVCC（3）">
 <meta property="og:url" content="http://ttoobbyyy.github.io/2023/12/26/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E9%9A%94%E7%A6%BB%E6%80%A7%E4%B8%8EMVCC%EF%BC%883%EF%BC%89/index.html">
-<meta property="og:site_name" content="阳光下的猫">
+<meta property="og:site_name" content="迎着阳光盛大逃亡">
 <meta property="og:description" content="前言并发是程序最为复杂的场景之一，在数据库领域，做好隔离就是为了解决并发的问题。然而不同于我们在业务场景中处理并发问题，直接加锁就好了。对于数据库，还得考虑整体吞吐量，不能用锁“一棍子打死”。于是就存在诸如读锁，写锁，意向锁，范围锁等一系列锁的类型。而且锁的范围也得考虑，锁表，还是只锁对应的行。这些都是需要考虑的，同时，除了锁，还会存在并发程度高的解决方案，如MVCC(多版本并发控制协议) 等锁+">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-12-26T15:38:00.000Z">
@@ -34,7 +34,7 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>数据库事务--隔离性与MVCC（3） - 阳光下的猫</title>
+  <title>数据库事务--隔离性与MVCC（3） - 迎着阳光盛大逃亡</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 

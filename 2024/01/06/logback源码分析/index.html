@@ -20,7 +20,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="logback源码分析">
 <meta property="og:url" content="http://ttoobbyyy.github.io/2024/01/06/logback%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
-<meta property="og:site_name" content="阳光下的猫">
+<meta property="og:site_name" content="迎着阳光盛大逃亡">
 <meta property="og:description" content="引子最近排查一个线上异常，发现起因是日志打印不完整，使用的日志框架正是 logback，在排查问题的过程中深入学习了相关源码，虽然最后没有得到可靠的结论，排查过程中没有发现有对单条日志大小进行限制的配置，我认为是数据落盘的时候丢失了一部分。 slf4jJava 的日志框架常用的有 log4j、logback、jul(common-log)以及 log4j2。为了实现不同日志框架之间的无缝切换，Ce">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240107192051.png">
@@ -36,7 +36,7 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>logback源码分析 - 阳光下的猫</title>
+  <title>logback源码分析 - 迎着阳光盛大逃亡</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
