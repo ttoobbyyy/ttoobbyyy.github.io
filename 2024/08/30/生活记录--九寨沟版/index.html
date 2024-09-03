@@ -16,26 +16,27 @@
   <meta name="author" content="jianren.xiao">
   <meta name="keywords" content="">
   
-    <meta name="description" content="本文将简单介绍分布式系统涉及的技术点，可以作为一个学习大纲。后续还需要深入的学习其中的知识点。   背景互联网的繁荣发展给每个人的生活带来了翻天覆地的变化。而这些对于提供互联网服务的公司也带来的大流量的压力，传统的单机承接不了这么大的流量压力，哪怕是升级机器配置也有承受的上限！而 分布式系统 就是来解决这个问题的，它可以理解为多个普通计算机节点联合起来一起工作，对客户端而言，就像只有一台单机在工">
+    <meta name="description" content="前言一直都是更新技术文章，感觉好好记录一下生活也是很有趣的。刚好最近生活发生了比较大的变动。随意记录一下。 工作跳槽了。想想毕业也两年了，在公司感觉上升通道有限，想换一个更大的平台。为此准备了半年多，整个准备下来，感觉和当初校招差不多，面试的内容差不多，唯一的区别是去掉了很多计算机原理的问题，基本没有碰到计算机网络和操作系统相关问题。而且个人感觉，如果简历中没有什么比较特别的亮点，那么面试纯粹就">
 <meta property="og:type" content="article">
-<meta property="og:title" content="分布式系统知识大纲">
-<meta property="og:url" content="http://ttoobbyyy.github.io/2024/03/29/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:title" content="生活记录--九寨沟版">
+<meta property="og:url" content="http://ttoobbyyy.github.io/2024/08/30/%E7%94%9F%E6%B4%BB%E8%AE%B0%E5%BD%95--%E4%B9%9D%E5%AF%A8%E6%B2%9F%E7%89%88/index.html">
 <meta property="og:site_name" content="迎着阳光盛大逃亡">
-<meta property="og:description" content="本文将简单介绍分布式系统涉及的技术点，可以作为一个学习大纲。后续还需要深入的学习其中的知识点。   背景互联网的繁荣发展给每个人的生活带来了翻天覆地的变化。而这些对于提供互联网服务的公司也带来的大流量的压力，传统的单机承接不了这么大的流量压力，哪怕是升级机器配置也有承受的上限！而 分布式系统 就是来解决这个问题的，它可以理解为多个普通计算机节点联合起来一起工作，对客户端而言，就像只有一台单机在工">
+<meta property="og:description" content="前言一直都是更新技术文章，感觉好好记录一下生活也是很有趣的。刚好最近生活发生了比较大的变动。随意记录一下。 工作跳槽了。想想毕业也两年了，在公司感觉上升通道有限，想换一个更大的平台。为此准备了半年多，整个准备下来，感觉和当初校招差不多，面试的内容差不多，唯一的区别是去掉了很多计算机原理的问题，基本没有碰到计算机网络和操作系统相关问题。而且个人感觉，如果简历中没有什么比较特别的亮点，那么面试纯粹就">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240329221306.png">
-<meta property="article:published_time" content="2024-03-29T14:11:00.000Z">
-<meta property="article:modified_time" content="2024-03-29T14:11:00.000Z">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408301333044.png">
+<meta property="article:published_time" content="2024-08-30T05:39:00.000Z">
+<meta property="article:modified_time" content="2024-08-30T05:39:00.000Z">
 <meta property="article:author" content="jianren.xiao">
-<meta property="article:tag" content="分布式系统">
+<meta property="article:tag" content="随笔">
+<meta property="article:tag" content="生活日常">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240329221306.png">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408301333044.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>分布式系统知识大纲 - 迎着阳光盛大逃亡</title>
+  <title>生活记录--九寨沟版 - 迎着阳光盛大逃亡</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -201,7 +202,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="分布式系统知识大纲"></span>
+            <span id="subtitle" data-typed-text="生活记录--九寨沟版"></span>
           
         </div>
 
@@ -212,8 +213,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-03-29 22:11" pubdate>
-          2024年3月29日 晚上
+        <time datetime="2024-08-30 13:39" pubdate>
+          2024年8月30日 下午
         </time>
       </span>
     
@@ -224,7 +225,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.3k 字
+          981 字
         
       </span>
     
@@ -235,7 +236,7 @@
         
         
         
-          20 分钟
+          9 分钟
         
       </span>
     
@@ -272,49 +273,21 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">分布式系统知识大纲</h1>
+            <h1 id="seo-header">生活记录--九寨沟版</h1>
             
             
               <div class="markdown-body">
                 
-                <blockquote>
-<p>本文将简单介绍分布式系统涉及的技术点，可以作为一个学习大纲。后续还需要深入的学习其中的知识点。</p>
-</blockquote>
-<p><img src="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240329221306.png" srcset="/img/loading.gif" lazyload></p>
-<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>互联网的繁荣发展给每个人的生活带来了翻天覆地的变化。而这些对于提供互联网服务的公司也带来的大流量的压力，传统的单机承接不了这么大的流量压力，哪怕是升级机器配置也有承受的上限！<br>而 <code>分布式系统</code> 就是来解决这个问题的，它可以理解为多个普通计算机节点联合起来一起工作，对客户端而言，就像只有一台单机在工作一般，理论上分布式系统是可以无限扩展的。</p>
-<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
-<li>弹性高：分布式系统的节点数量可以动态增删</li>
-<li>成本低：多个普通节点可以完成一个高配置机器能完成的任务</li>
-</ul>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><p>极大的提高了运维复杂度。假如一台机器故障概率是 1%，那么 10 台机器可能导致故障概率是 <code>（1-（1-0.01）^10）= 9.5%</code>。在分布式环境下，机器出故障的概率会大大增加。</p>
-<h3 id="理论基础"><a href="#理论基础" class="headerlink" title="理论基础"></a>理论基础</h3><h4 id="CAP-定理"><a href="#CAP-定理" class="headerlink" title="CAP 定理"></a>CAP 定理</h4><p>这个定理是分布式系统理论上的一个基本准则，指的是以下三种特性只能保障两个：<br>C：一致性，指的是多个节点对外提供一致的数据。（这样描述不够准确，我们可以理解为客户端同一时刻访问分布式系统的任意一个节点，获取到的数据是一样的）<br>A：可用性，指的是系统中任意一个节点发生问题时，数据和其他节点不一致，是否选择让它还对外提供服务。如果继续服务，则说明系统选择了可用性。<br>P：网络分区，只要节点是通过网络进行交互的，则一定会发生网络分区，如果发生分区，就不对外提供服务，那么这个系统将极其不可靠。<br>因此，我们一般会根据场景选择 CP 或者 AP 系统。<br>不过，这里的一致性指的是 <code>强一致性</code>，在实际应用中，实现它代价太大了，于是理论上的 CAP 定理，到工程实践上就变成了 <code>BASE</code> 理论。<br>basically available：基本可用，允许系统丧失部分可用性<br>soft state：软状态，允许系统的数据存在中间状态，也就是允许客户端访问到过期数据<br>eventually consistent：最终一致性，系统最后会达到一致的状态，不保证实时达到一致性。</p>
-<h4 id="有状态应用"><a href="#有状态应用" class="headerlink" title="有状态应用"></a>有状态应用</h4><p>上面的定理的应用对象就是 <code>有状态应用</code>，指的是应用中存在数据，如果数据完全在第三方数据源上，应用无状态，那么这个分布式系统无论怎么折腾都可以，节点可以任意故障。</p>
-<blockquote>
-<p>一般来说，我们希望业务应用能做到是无状态应用，然而有时候不可避免会保留本地缓存，如何保持这份本地缓存的一致性也是一个挑战，一个行之有效的方法是设置缓存的随机失效时间</p>
-</blockquote>
-<h4 id="共识算法"><a href="#共识算法" class="headerlink" title="共识算法"></a>共识算法</h4><p>共识指的是分布式系统多个节点就某一个提议达成了一致。<br>这么说有点抽象，要注意的是共识算法并不等同于实现了强一致性，它还存在一些限制。比如一个实现典型 raft 算法的分布式系统，只能通过主节点进行读写操作，其他节点只能当作副本。<br>不过在现实中很多场景问题都可以等价为共识问题：</p>
-<ul>
-<li>原子事务提交</li>
-<li>全序广播</li>
-<li>分布式锁和租约</li>
-<li>选主</li>
-</ul>
-<h4 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h4><p>一致性在分布式系统是一个很“晦涩”的话题。<br>最理想的环境下，我们希望整个分布式系统可以当作一个单机来看待，就没有什么一致性的问题了。也可以说整个系统做到了“强一致性”。<br>然而现实是，做到强一致性代价太大了，就有了各种妥协。分布式系统有两个固有的缺陷，第一个是前文提及的节点随时会失效；另一个就是和一致性相关的缺少一个 <code>全序时钟</code>，每个节点的时钟不能保证一致。那么客户端访问不同节点的操作就无法通过时间戳确定先后顺序。<br>在一些场景下，两个操作之间有依赖关系。于是衍生出“顺序一致性”，“最终一致性”，“因果一致性”等多种一致性概念。</p>
-<h4 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h4><p>和本地事务不同，分布式事务是多个数据源共同参与的，目的也是追求数据逻辑的一致性。而这一点和共识算法有一点点相似的地方，两者都是为了做到数据的一致性。而且原理上都有一点用到了 <code>2pc</code> 的思想。<br>2pc 核心在于有一个预提交的中间状态，这个中间状态让各个节点可以感知其他节点的情况，进行回滚或者提交！当然，它必然是中心化的系统，需要一个事务协调节点。这就带来了单点问题，就有更为复杂的 <code>3pc</code> 方案</p>
-<h3 id="“三高”追求"><a href="#“三高”追求" class="headerlink" title="“三高”追求"></a>“三高”追求</h3><p>三高，是每一个架构设计所追求的！</p>
-<h4 id="高可靠-高可用"><a href="#高可靠-高可用" class="headerlink" title="高可靠 &amp; 高可用"></a>高可靠 &amp; 高可用</h4><p>高可靠和高可用是类似概念，指的是一个服务能连续提供服务的时长，也就是服务很稳定，很可靠，另一个层面来说，就算遇到问题，也能保证关键数据不丢失！<br>一般来说会涉及很多方面的问题，如硬件，软件，网络，运维等。而解决方案似乎出奇的一致：<strong>复制</strong>。由此衍生的名词有，主从复制，副本机制，异地多活，故障转移等。</p>
-<h4 id="高性能"><a href="#高性能" class="headerlink" title="高性能"></a>高性能</h4><p>高性能指的就是系统可以承受多大的流量，一般来说节点越多，性能越好。然而对于有状态应用，还有诸多限制。关于这一方面也有很多名词：读写分离，集群机制，哨兵机制，数据分区等</p>
-<h3 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h3><h4 id="服务注册和发现"><a href="#服务注册和发现" class="headerlink" title="服务注册和发现"></a>服务注册和发现</h4><p>这个点本不应该放入分布式系统中来讲的，这个更多的是微服务的概念，微服务之间采用 RPC 进行通信。需要服务注册和发现的过程。</p>
-<h4 id="分布式消息队列"><a href="#分布式消息队列" class="headerlink" title="分布式消息队列"></a>分布式消息队列</h4><p>消息队列作为一个典型案例来讲解。它涉及了数据分区，副本机制，主从切换等常见分布式数据系统遇到的问题。<br>数据同步到多副本的过程还存在一个复制模型的选择问题：</p>
+                <p><img src="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408301333044.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>一直都是更新技术文章，感觉好好记录一下生活也是很有趣的。刚好最近生活发生了比较大的变动。随意记录一下。</p>
+<h3 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h3><p>跳槽了。想想毕业也两年了，在公司感觉上升通道有限，想换一个更大的平台。为此准备了半年多，整个准备下来，感觉和当初校招差不多，面试的内容差不多，唯一的区别是去掉了很多计算机原理的问题，基本没有碰到计算机网络和操作系统相关问题。<br>而且个人感觉，如果简历中没有什么比较特别的亮点，那么面试纯粹就是看运气了，因为对于面试官来说，他要求的技术能力没有那么高，面试者好好准备一两个月，就差不多能应付了。所以失败了，也没有必要过于难受，万一下一个就能碰到死耗子呢~<br>在上家公司离职的时候，被 hr 卡了一个月，这个倒是我没有想到的，tl 都选择放人了。</p>
+<h3 id="旅游"><a href="#旅游" class="headerlink" title="旅游"></a>旅游</h3><p>去九寨沟了。和阿蓝一起去的，玩了大概 7 天。这还是和她在一起之后第一次出去旅游，都说长时间旅行能看出两人合不合适。实验下来，好像没有出现什么大问题，这个挺开心的。<br>旅游地点是阿蓝选的，她去过很多地方玩，说九寨沟是她的一个执念，事实证明，九寨沟确实配得上，哈哈哈哈哈哈哈哈哈。<br>水特别好看，像蓝宝石一样！尤其要夸一下景区的管理，非常多的观光车，早上 8 点到大门口就已经排了非常长的队伍了，然而没等 5 分钟就成功坐上观光车了。景区非常大，但由于交通特别方便，我们除了原始森林，基本都逛完了所有景点。<br>还去了黄龙，相比于九寨沟差的有点多，如果时间有限，只去九寨沟就好了。</p>
+<h3 id="Fire"><a href="#Fire" class="headerlink" title="Fire"></a>Fire</h3><p>“fire”是一种生活方式。理念是远离消费主义，倡导极简主义，尽可能让自己早点退休。<br>这个是我最近思考如何对付程序员中年危机得到的结论。程序员的职业生涯其实非常适合“fire”。前期快速积累资金，后期靠前期资本获得一些被动收入。不过有些点还是得注意：</p>
 <ol>
-<li>同步复制：所有副本 ack 再返回</li>
-<li>半同步复制：部分数量的副本 ack 后返回</li>
-<li>异步复制：不等待副本 ack 直接返回<br>而对于消息队列本身，还有一个消费模型的语义选择：</li>
-<li>至多一次消费：每个消息最多消费一次</li>
-<li>至少一次消费：每个消息至少消费一次</li>
-<li>只消费一次：每个消息会且只会消费一次，这需要依靠消息幂等性和消息事务来实现。不同消息队列产品实现的方式不一致</li>
+<li>消费观尽可能偏向极简主义，如果你的消费观做不到，那么一直好好工作才适合你</li>
+<li>培养起自己非常感兴趣的爱好，最好能一直带来反馈的，能持久下去的。这个对我来说还是挺难的。但非常重要，后期提早退休将会获得大量空闲时间，如果没有自己很热爱的，那么时间将会特别无聊，难熬。</li>
+<li>如果有另一半，那么最好另一半的想法和你差不多，不一致的话会特别难受的。阿蓝的想法和我是差不多的，她不是那种消费主义的，不过让她很“节流”还是有点困难，所以我后期的方向是尽可能“开源”。<br>每个人都有自己选择的生活方式，哪种“主义”都是对的，生活嘛，开心最重要！</li>
 </ol>
-<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/guyue35/article/details/125211496">共识、线性一致性、顺序一致性、最终一致性、强一致性讲解_最终一致性和强一致性-CSDN博客</a><br><a target="_blank" rel="noopener" href="https://qiankunli.github.io/2022/04/06/replica_consistency_level.html">多角度理解一致性 | 李乾坤的博客 (qiankunli.github.io)</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/O9Z5e_BzdxKcULHigYMkRg">Replication（下）：事务，一致性与共识 (qq.com)</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/LB5SR4ypQwDxzueI1ai2Kg">Replication（上）：常见的复制模型&amp;分布式系统的挑战 (qq.com)</a></p>
 
                 
               </div>
@@ -333,7 +306,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" class="category-chain-item">架构设计</a>
+  <a href="/categories/%E6%9D%82%E8%B0%88/" class="category-chain-item">杂谈</a>
   
   
 
@@ -348,7 +321,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" class="print-no-link">#分布式系统</a>
+        <a href="/tags/%E9%9A%8F%E7%AC%94/" class="print-no-link">#随笔</a>
+      
+        <a href="/tags/%E7%94%9F%E6%B4%BB%E6%97%A5%E5%B8%B8/" class="print-no-link">#生活日常</a>
       
     </div>
   
@@ -360,8 +335,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>分布式系统知识大纲</div>
-      <div>http://ttoobbyyy.github.io/2024/03/29/分布式系统/</div>
+      <div>生活记录--九寨沟版</div>
+      <div>http://ttoobbyyy.github.io/2024/08/30/生活记录--九寨沟版/</div>
     </div>
     <div class="license-meta">
       
@@ -373,7 +348,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年3月29日</div>
+          <div>2024年8月30日</div>
         </div>
       
       
@@ -405,18 +380,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/08/14/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1(4)/" title="数据库事务--分布式事务(4)">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">数据库事务--分布式事务(4)</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/01/27/DDD%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="DDD学习笔记">
-                        <span class="hidden-mobile">DDD学习笔记</span>
+                      <a href="/2024/08/14/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1(4)/" title="数据库事务--分布式事务(4)">
+                        <span class="hidden-mobile">数据库事务--分布式事务(4)</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

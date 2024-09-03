@@ -4,6 +4,62 @@
   
   
   <entry>
+    <title>生活记录--九寨沟版</title>
+    <link href="/2024/08/30/%E7%94%9F%E6%B4%BB%E8%AE%B0%E5%BD%95--%E4%B9%9D%E5%AF%A8%E6%B2%9F%E7%89%88/"/>
+    <url>/2024/08/30/%E7%94%9F%E6%B4%BB%E8%AE%B0%E5%BD%95--%E4%B9%9D%E5%AF%A8%E6%B2%9F%E7%89%88/</url>
+    
+    <content type="html"><![CDATA[<p><img src="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408301333044.png"></p><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>一直都是更新技术文章，感觉好好记录一下生活也是很有趣的。刚好最近生活发生了比较大的变动。随意记录一下。</p><h3 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h3><p>跳槽了。想想毕业也两年了，在公司感觉上升通道有限，想换一个更大的平台。为此准备了半年多，整个准备下来，感觉和当初校招差不多，面试的内容差不多，唯一的区别是去掉了很多计算机原理的问题，基本没有碰到计算机网络和操作系统相关问题。<br>而且个人感觉，如果简历中没有什么比较特别的亮点，那么面试纯粹就是看运气了，因为对于面试官来说，他要求的技术能力没有那么高，面试者好好准备一两个月，就差不多能应付了。所以失败了，也没有必要过于难受，万一下一个就能碰到死耗子呢~<br>在上家公司离职的时候，被 hr 卡了一个月，这个倒是我没有想到的，tl 都选择放人了。</p><h3 id="旅游"><a href="#旅游" class="headerlink" title="旅游"></a>旅游</h3><p>去九寨沟了。和阿蓝一起去的，玩了大概 7 天。这还是和她在一起之后第一次出去旅游，都说长时间旅行能看出两人合不合适。实验下来，好像没有出现什么大问题，这个挺开心的。<br>旅游地点是阿蓝选的，她去过很多地方玩，说九寨沟是她的一个执念，事实证明，九寨沟确实配得上，哈哈哈哈哈哈哈哈哈。<br>水特别好看，像蓝宝石一样！尤其要夸一下景区的管理，非常多的观光车，早上 8 点到大门口就已经排了非常长的队伍了，然而没等 5 分钟就成功坐上观光车了。景区非常大，但由于交通特别方便，我们除了原始森林，基本都逛完了所有景点。<br>还去了黄龙，相比于九寨沟差的有点多，如果时间有限，只去九寨沟就好了。</p><h3 id="Fire"><a href="#Fire" class="headerlink" title="Fire"></a>Fire</h3><p>“fire”是一种生活方式。理念是远离消费主义，倡导极简主义，尽可能让自己早点退休。<br>这个是我最近思考如何对付程序员中年危机得到的结论。程序员的职业生涯其实非常适合“fire”。前期快速积累资金，后期靠前期资本获得一些被动收入。不过有些点还是得注意：</p><ol><li>消费观尽可能偏向极简主义，如果你的消费观做不到，那么一直好好工作才适合你</li><li>培养起自己非常感兴趣的爱好，最好能一直带来反馈的，能持久下去的。这个对我来说还是挺难的。但非常重要，后期提早退休将会获得大量空闲时间，如果没有自己很热爱的，那么时间将会特别无聊，难熬。</li><li>如果有另一半，那么最好另一半的想法和你差不多，不一致的话会特别难受的。阿蓝的想法和我是差不多的，她不是那种消费主义的，不过让她很“节流”还是有点困难，所以我后期的方向是尽可能“开源”。<br>每个人都有自己选择的生活方式，哪种“主义”都是对的，生活嘛，开心最重要！</li></ol>]]></content>
+    
+    
+    <categories>
+      
+      <category>杂谈</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>随笔</tag>
+      
+      <tag>生活日常</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>数据库事务--分布式事务(4)</title>
+    <link href="/2024/08/14/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1(4)/"/>
+    <url>/2024/08/14/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1(4)/</url>
+    
+    <content type="html"><![CDATA[<p>谈及分布式事务，就必须涉及多个服务，多个数据源。既然还是属于事务，那么目的还是尽可能保证数据一致性，只不过手段上，不能像传统事务那么简单的在单数据源上解决问题。</p><h3 id="例子引入"><a href="#例子引入" class="headerlink" title="例子引入"></a>例子引入</h3><p>下面笔者尝试根据自己有限的理论介绍清楚分布式事务，到底解决什么问题，各个解决方案有什么问题。<br>首先引入，分布式事务中常用例子，一个电商场景中用户购买商品，涉及仓储服务，订单服务，账户服务。<br><img src="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408141439335.png"><br>用代码来表示就是这样的：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderServiceImpl</span>&#123;<br><span class="hljs-meta">@Resource</span><br><span class="hljs-keyword">public</span> StockService stockService;<br><span class="hljs-meta">@Resource</span><br><span class="hljs-keyword">public</span> UserService userService;<br><span class="hljs-meta">@Resource</span><br><span class="hljs-keyword">public</span> OrderMapper orderMapper;<br><br><span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">order</span><span class="hljs-params">()</span>&#123;<br><span class="hljs-comment">// 保存订单</span><br>orderMapper.save();<br><span class="hljs-comment">// 预扣库存</span><br>stockService.save();<br><span class="hljs-comment">// 扣减资金</span><br>userService.save();<br>&#125;<br>&#125;<br></code></pre></td></tr></table></figure><p>上面的执行顺序还有待考量，在实践中尽可能<strong>将本地操作，和最容易出错的操作先执行</strong>。如果我们可以保证每个 sql 都可以执行成功，那么确实也不需要什么额外措施。然而，物理机器和网络是不可靠的，任意的 sql 执行失败，都会导致数据的不一致。<br>比如，我们很自然想到为方法加上本地事务（可以简单的为方法加上@Transaction 注解），当订单服务，库存服务的 sql 执行失败，都可以正确的回滚。而当账户服务的 sql 执行失败了，抛出了异常，订单服务可以正常回滚，然而库存服务无法感知到这一点，数据不一致了。<br>这里存在问题的根因是，不同服务之间的状态无法感知，那么，让服务之间互相感知一般有两种方式，一种是服务之间互相通信，另一种有一个中心管理者来管理所有服务，显然第一种方案的通信成本会随着服务数量增多而显著增加。所以，工程上，一般都是<strong>添加第三方管理者</strong>。<br><img src="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408141439858.png"></p><h3 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h3><p>引入一个中心管理者，其核心思想其实就是二阶段提交。<br>第一阶段：各个微服务提交事务，并且将执行状态上报给中心管理者<br>第二阶段：中心管理者根据各个微服务的执行情况，给与反馈，只有所有微服务都成功了，才能提交分布式事务，否则就回滚</p><h4 id="3PC"><a href="#3PC" class="headerlink" title="3PC"></a>3PC</h4><ol><li>3pc 比 2pc 多了一个 can commit 阶段，减少了不必要的资源浪费。因为 2pc 在第一阶段会占用资源，而 3pc 在这个阶段不占用资源，只是校验一下 sql，如果不能执行，就直接返回，减少了资源占用。（这里资源占用是指对资源进行加锁了）</li><li>引入超时机制。同时在协调者和参与者中都引入超时机制。<br> 2pc: 只有协调者有超时机制，超时后，发送回滚指令。<br> 3pc: 协调者和参与者都有超时机制。<br> 协调者超时: can commit，pre commit 中，如果收不到参与者的反馈，则协调者向参与者发送中断指令。<br> 参与者超时: pre commit 阶段，参与者进行中断; do commit 阶段，参与者进行提交。</li></ol><h3 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h3><p>基于上述的理论，工程上已经有多种模式可以使用了。</p><h4 id="XA-模式"><a href="#XA-模式" class="headerlink" title="XA 模式"></a>XA 模式</h4><p>XA 其实可以理解为分布式事务处理（DTP，distribute transaction process）的一个处理规范协议，有很多数据库已经支持了。<br>XA 模式将组件分为三种角色<br>AP（application）：开启全局事务的应用程序<br>TM（transaction manager）：全局事务管理器，管理全局事务和各个子事务的状态<br>RM（resource manager）：资源管理器，参与者需要实现 XA 协议，因此一般都是数据库来承担。可见这个模式对代码侵入性比较小<br>执行过程：</p><ol><li>准备阶段：rm 本地提交本地子事务，但不写入最后的 commit record（即：不释放锁资源）。将执行结果通知给 tm</li><li>执行阶段：tm 根据各个子事务的结果，让 rm 们进行 commit&#x2F;rollback<br>特点：</li><li>强一致性</li><li>性能差劲：整个过程有三次持久化（准备阶段 rm 写 redo 日志，tm 做状态持久化，提交阶段 rm 写入提交日志），两次远程调用。而且具有木桶效应，最慢的 rm 不完成任务，其他 rm 不能释放锁资源</li><li>单点效应：rm 宕机了，可以在 rm 的提交结果过程引入超时机制，但 tm 的回复过程宕机了，无法处理。需要做好 tm 集群的高可用</li></ol><h4 id="AT-模式"><a href="#AT-模式" class="headerlink" title="AT 模式"></a>AT 模式</h4><p>在 AT 模式下，业务基本无感知的，都是通过 seate 做了一层代理来实现功能的。<br>事务执行过程：</p><ol><li>准备阶段：Seata 会拦截“业务 SQL”，首先解析 SQL 语义，找到“业务 SQL”要更新的业务数据，在业务数据被更新前，将其保存成“before image”，然后执行“业务 SQL”更新业务数据，在业务数据更新之后，再将其保存成“after image”，最后生成框架行锁。以上操作全部在一个数据库事务内完成。</li><li>执行阶段：<ol><li>commit：将“before image”和“after image”删除，释放框架行锁</li><li>rollback：将对应的数据和“after image”进行对比，如果数据一致，说明这个过程没有发生脏写（虽然有行锁，但是这是框架层面的，不能排除有其他数据库连接修改了数据，还是可能会脏写），直接把数据还原为“before image”。如果数据不一致，则必须人工介入<br>可以看出 AT 模式和 XA 模式特别像，都是 2PC 的典型应用，不过有两点不同：</li></ol></li><li>AT 模式的 RM 是业务应用，不是数据库处理的。</li><li>AT 模式在准备阶段会直接提交本地事务，不会占用锁资源，避免了木桶效应。（这里值得一提的是，seata 虽然释放了本地锁资源，但是会保存一个框架级别的“全局锁”，这个锁是行锁，用于做写隔离效果的）<br>这个模式是一个使用比较广泛的分布式事务解决方案</li></ol><h4 id="TCC-模式"><a href="#TCC-模式" class="headerlink" title="TCC 模式"></a>TCC 模式</h4><p>上面介绍的两种模式都是业务侵入性比较小的方案。也正是因为它的业务侵入性比较小，导致它的灵活性不够，只能基于 sql 维度解决问题。<br>TCC 主要有三个步骤，也是两个阶段：</p><ul><li>Try：预留资源</li><li>Confirm：执行的业务操作提交</li><li>Cancel：预留的资源释放<br>这三个步骤的划分都是基于业务上的，我们在使用这个模式的时候首先就得把业务模型拆为两阶段。<br>举一个扣 100 元的例子，try 阶段就得冻结用户 100 元，confirm 阶段就直接提交，cancel 阶段就撤销冻结操作。但是，“冻结”操作我们有很多实现方式，可以新建一张金钱冻结数据表，或者依据什么高可靠的消息队列，不需要像 XA 模式保留锁资源，或者像 AT 模式保留一个框架全局行锁。这种模式的灵活性高很多，带来的性能也会高很多。就是对业务侵入比较强。<br>在此基础上再提出几个只有再业务层面才能实现的技术点：</li></ul><ol><li>允许空回滚：try 操作失败了，rm 收到了 cancel 命令，此时 rm 没有发现事务 id 时也需要能回滚成功</li><li>防悬挂设计：悬挂的意思是 cancel 比 try 更先执行。比如，try 操作超时了，cancel 回滚成功，此时 try 命令又来了，rm 就不应该可以再执行 try 命令了，否则就会数据不一致</li><li>幂等性：其实，分布式系统的场景下，尽可能所有接口都设计成幂等的。因为网络是不稳定的，我们会通过重试操作来减少这种不稳定带来的影响，术语叫做“最大努力交付”。<br>这些技术点，基本都需要业务的参与。</li></ol><h4 id="SAGA-模式"><a href="#SAGA-模式" class="headerlink" title="SAGA 模式"></a>SAGA 模式</h4><p>这个模式的核心思想是将一个长的分布式事务，分解为一个个子事务，并且为子事务设计补偿操作。只要所有子事务可以正确提交，分布式事务就算正确提交了。如果有的子事务无法正确提交，那么有两种操作：</p><ol><li>正向恢复：重复尝试失败的子事务，做到“最大努力交付”，这种适用于事务必须要成功的场景</li><li>反向恢复：执行目前已经执行了的子事务的补偿操作。如果补偿操作失败，也得做到“最大努力交付”。否则让人工介入<br>SAGA 必须保证所有子事务都得提交或者补偿，但 SAGA 系统本身也可能崩溃，所以系统本身也得做到高可用。<br>这个模式的业务侵入性也很强，因为补偿是在业务层面做的。这个和回滚不太一样，它需要业务的参与。比如扣 100 元钱，补偿是指加上 100 元，而回滚是撤销扣钱的操作。</li></ol><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>事务的目的是保证数据一致性，本地事务的执行过程保证了无论系统在什么场景下，数据都是一致的。<br>但是在分布式的场景下，可以看到，这四种模式有各自的优缺点，没有一种模式适合所有的场景，因地制宜才是最好的选择。<br>分布式系统的引入，带来了机遇，也带来了技术挑战，分布式系统在极端场景下需要人工的介入才能保证数据一致性。<br>当然，除了分布式事务这种“很重”的操作，在很多业务场景中，我们还是会选择使用“最终一致性”这种性能更高的方案，还是要因“场景”制宜的。</p><h3 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h3><p>seata 官网： <a href="https://seata.io/zh-cn/docs/dev/mode/at-mode.html">Seata AT 模式</a><br>AT 模式的行锁：<a href="https://juejin.cn/post/7164254193362927624">Seata AT模式原来是这样实现行锁的 - 掘金 (juejin.cn)</a><br>《凤凰架构》：<a href="http://icyfenix.cn/">凤凰架构：构建可靠的大型分布式系统 | 凤凰架构 (icyfenix.cn)</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>数据库</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>数据库</tag>
+      
+      <tag>事务</tag>
+      
+      <tag>分布式系统</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>分布式系统知识大纲</title>
     <link href="/2024/03/29/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
     <url>/2024/03/29/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/</url>

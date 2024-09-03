@@ -16,26 +16,29 @@
   <meta name="author" content="jianren.xiao">
   <meta name="keywords" content="">
   
-    <meta name="description" content="本文将简单介绍分布式系统涉及的技术点，可以作为一个学习大纲。后续还需要深入的学习其中的知识点。   背景互联网的繁荣发展给每个人的生活带来了翻天覆地的变化。而这些对于提供互联网服务的公司也带来的大流量的压力，传统的单机承接不了这么大的流量压力，哪怕是升级机器配置也有承受的上限！而 分布式系统 就是来解决这个问题的，它可以理解为多个普通计算机节点联合起来一起工作，对客户端而言，就像只有一台单机在工">
+    <meta name="description" content="谈及分布式事务，就必须涉及多个服务，多个数据源。既然还是属于事务，那么目的还是尽可能保证数据一致性，只不过手段上，不能像传统事务那么简单的在单数据源上解决问题。 例子引入下面笔者尝试根据自己有限的理论介绍清楚分布式事务，到底解决什么问题，各个解决方案有什么问题。首先引入，分布式事务中常用例子，一个电商场景中用户购买商品，涉及仓储服务，订单服务，账户服务。用代码来表示就是这样的： 123456789">
 <meta property="og:type" content="article">
-<meta property="og:title" content="分布式系统知识大纲">
-<meta property="og:url" content="http://ttoobbyyy.github.io/2024/03/29/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:title" content="数据库事务--分布式事务(4)">
+<meta property="og:url" content="http://ttoobbyyy.github.io/2024/08/14/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1(4)/index.html">
 <meta property="og:site_name" content="迎着阳光盛大逃亡">
-<meta property="og:description" content="本文将简单介绍分布式系统涉及的技术点，可以作为一个学习大纲。后续还需要深入的学习其中的知识点。   背景互联网的繁荣发展给每个人的生活带来了翻天覆地的变化。而这些对于提供互联网服务的公司也带来的大流量的压力，传统的单机承接不了这么大的流量压力，哪怕是升级机器配置也有承受的上限！而 分布式系统 就是来解决这个问题的，它可以理解为多个普通计算机节点联合起来一起工作，对客户端而言，就像只有一台单机在工">
+<meta property="og:description" content="谈及分布式事务，就必须涉及多个服务，多个数据源。既然还是属于事务，那么目的还是尽可能保证数据一致性，只不过手段上，不能像传统事务那么简单的在单数据源上解决问题。 例子引入下面笔者尝试根据自己有限的理论介绍清楚分布式事务，到底解决什么问题，各个解决方案有什么问题。首先引入，分布式事务中常用例子，一个电商场景中用户购买商品，涉及仓储服务，订单服务，账户服务。用代码来表示就是这样的： 123456789">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240329221306.png">
-<meta property="article:published_time" content="2024-03-29T14:11:00.000Z">
-<meta property="article:modified_time" content="2024-03-29T14:11:00.000Z">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408141439335.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408141439858.png">
+<meta property="article:published_time" content="2024-08-14T06:37:00.000Z">
+<meta property="article:modified_time" content="2024-08-14T06:37:00.000Z">
 <meta property="article:author" content="jianren.xiao">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="事务">
 <meta property="article:tag" content="分布式系统">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240329221306.png">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408141439335.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>分布式系统知识大纲 - 迎着阳光盛大逃亡</title>
+  <title>数据库事务--分布式事务(4) - 迎着阳光盛大逃亡</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -201,7 +204,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="分布式系统知识大纲"></span>
+            <span id="subtitle" data-typed-text="数据库事务--分布式事务(4)"></span>
           
         </div>
 
@@ -212,8 +215,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-03-29 22:11" pubdate>
-          2024年3月29日 晚上
+        <time datetime="2024-08-14 14:37" pubdate>
+          2024年8月14日 下午
         </time>
       </span>
     
@@ -224,7 +227,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.3k 字
+          3.6k 字
         
       </span>
     
@@ -235,7 +238,7 @@
         
         
         
-          20 分钟
+          30 分钟
         
       </span>
     
@@ -272,49 +275,58 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">分布式系统知识大纲</h1>
+            <h1 id="seo-header">数据库事务--分布式事务(4)</h1>
             
             
               <div class="markdown-body">
                 
-                <blockquote>
-<p>本文将简单介绍分布式系统涉及的技术点，可以作为一个学习大纲。后续还需要深入的学习其中的知识点。</p>
-</blockquote>
-<p><img src="https://raw.githubusercontent.com/ttoobbyyy/images/master/20240329221306.png" srcset="/img/loading.gif" lazyload></p>
-<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>互联网的繁荣发展给每个人的生活带来了翻天覆地的变化。而这些对于提供互联网服务的公司也带来的大流量的压力，传统的单机承接不了这么大的流量压力，哪怕是升级机器配置也有承受的上限！<br>而 <code>分布式系统</code> 就是来解决这个问题的，它可以理解为多个普通计算机节点联合起来一起工作，对客户端而言，就像只有一台单机在工作一般，理论上分布式系统是可以无限扩展的。</p>
-<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
-<li>弹性高：分布式系统的节点数量可以动态增删</li>
-<li>成本低：多个普通节点可以完成一个高配置机器能完成的任务</li>
-</ul>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><p>极大的提高了运维复杂度。假如一台机器故障概率是 1%，那么 10 台机器可能导致故障概率是 <code>（1-（1-0.01）^10）= 9.5%</code>。在分布式环境下，机器出故障的概率会大大增加。</p>
-<h3 id="理论基础"><a href="#理论基础" class="headerlink" title="理论基础"></a>理论基础</h3><h4 id="CAP-定理"><a href="#CAP-定理" class="headerlink" title="CAP 定理"></a>CAP 定理</h4><p>这个定理是分布式系统理论上的一个基本准则，指的是以下三种特性只能保障两个：<br>C：一致性，指的是多个节点对外提供一致的数据。（这样描述不够准确，我们可以理解为客户端同一时刻访问分布式系统的任意一个节点，获取到的数据是一样的）<br>A：可用性，指的是系统中任意一个节点发生问题时，数据和其他节点不一致，是否选择让它还对外提供服务。如果继续服务，则说明系统选择了可用性。<br>P：网络分区，只要节点是通过网络进行交互的，则一定会发生网络分区，如果发生分区，就不对外提供服务，那么这个系统将极其不可靠。<br>因此，我们一般会根据场景选择 CP 或者 AP 系统。<br>不过，这里的一致性指的是 <code>强一致性</code>，在实际应用中，实现它代价太大了，于是理论上的 CAP 定理，到工程实践上就变成了 <code>BASE</code> 理论。<br>basically available：基本可用，允许系统丧失部分可用性<br>soft state：软状态，允许系统的数据存在中间状态，也就是允许客户端访问到过期数据<br>eventually consistent：最终一致性，系统最后会达到一致的状态，不保证实时达到一致性。</p>
-<h4 id="有状态应用"><a href="#有状态应用" class="headerlink" title="有状态应用"></a>有状态应用</h4><p>上面的定理的应用对象就是 <code>有状态应用</code>，指的是应用中存在数据，如果数据完全在第三方数据源上，应用无状态，那么这个分布式系统无论怎么折腾都可以，节点可以任意故障。</p>
-<blockquote>
-<p>一般来说，我们希望业务应用能做到是无状态应用，然而有时候不可避免会保留本地缓存，如何保持这份本地缓存的一致性也是一个挑战，一个行之有效的方法是设置缓存的随机失效时间</p>
-</blockquote>
-<h4 id="共识算法"><a href="#共识算法" class="headerlink" title="共识算法"></a>共识算法</h4><p>共识指的是分布式系统多个节点就某一个提议达成了一致。<br>这么说有点抽象，要注意的是共识算法并不等同于实现了强一致性，它还存在一些限制。比如一个实现典型 raft 算法的分布式系统，只能通过主节点进行读写操作，其他节点只能当作副本。<br>不过在现实中很多场景问题都可以等价为共识问题：</p>
-<ul>
-<li>原子事务提交</li>
-<li>全序广播</li>
-<li>分布式锁和租约</li>
-<li>选主</li>
-</ul>
-<h4 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h4><p>一致性在分布式系统是一个很“晦涩”的话题。<br>最理想的环境下，我们希望整个分布式系统可以当作一个单机来看待，就没有什么一致性的问题了。也可以说整个系统做到了“强一致性”。<br>然而现实是，做到强一致性代价太大了，就有了各种妥协。分布式系统有两个固有的缺陷，第一个是前文提及的节点随时会失效；另一个就是和一致性相关的缺少一个 <code>全序时钟</code>，每个节点的时钟不能保证一致。那么客户端访问不同节点的操作就无法通过时间戳确定先后顺序。<br>在一些场景下，两个操作之间有依赖关系。于是衍生出“顺序一致性”，“最终一致性”，“因果一致性”等多种一致性概念。</p>
-<h4 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h4><p>和本地事务不同，分布式事务是多个数据源共同参与的，目的也是追求数据逻辑的一致性。而这一点和共识算法有一点点相似的地方，两者都是为了做到数据的一致性。而且原理上都有一点用到了 <code>2pc</code> 的思想。<br>2pc 核心在于有一个预提交的中间状态，这个中间状态让各个节点可以感知其他节点的情况，进行回滚或者提交！当然，它必然是中心化的系统，需要一个事务协调节点。这就带来了单点问题，就有更为复杂的 <code>3pc</code> 方案</p>
-<h3 id="“三高”追求"><a href="#“三高”追求" class="headerlink" title="“三高”追求"></a>“三高”追求</h3><p>三高，是每一个架构设计所追求的！</p>
-<h4 id="高可靠-高可用"><a href="#高可靠-高可用" class="headerlink" title="高可靠 &amp; 高可用"></a>高可靠 &amp; 高可用</h4><p>高可靠和高可用是类似概念，指的是一个服务能连续提供服务的时长，也就是服务很稳定，很可靠，另一个层面来说，就算遇到问题，也能保证关键数据不丢失！<br>一般来说会涉及很多方面的问题，如硬件，软件，网络，运维等。而解决方案似乎出奇的一致：<strong>复制</strong>。由此衍生的名词有，主从复制，副本机制，异地多活，故障转移等。</p>
-<h4 id="高性能"><a href="#高性能" class="headerlink" title="高性能"></a>高性能</h4><p>高性能指的就是系统可以承受多大的流量，一般来说节点越多，性能越好。然而对于有状态应用，还有诸多限制。关于这一方面也有很多名词：读写分离，集群机制，哨兵机制，数据分区等</p>
-<h3 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h3><h4 id="服务注册和发现"><a href="#服务注册和发现" class="headerlink" title="服务注册和发现"></a>服务注册和发现</h4><p>这个点本不应该放入分布式系统中来讲的，这个更多的是微服务的概念，微服务之间采用 RPC 进行通信。需要服务注册和发现的过程。</p>
-<h4 id="分布式消息队列"><a href="#分布式消息队列" class="headerlink" title="分布式消息队列"></a>分布式消息队列</h4><p>消息队列作为一个典型案例来讲解。它涉及了数据分区，副本机制，主从切换等常见分布式数据系统遇到的问题。<br>数据同步到多副本的过程还存在一个复制模型的选择问题：</p>
-<ol>
-<li>同步复制：所有副本 ack 再返回</li>
-<li>半同步复制：部分数量的副本 ack 后返回</li>
-<li>异步复制：不等待副本 ack 直接返回<br>而对于消息队列本身，还有一个消费模型的语义选择：</li>
-<li>至多一次消费：每个消息最多消费一次</li>
-<li>至少一次消费：每个消息至少消费一次</li>
-<li>只消费一次：每个消息会且只会消费一次，这需要依靠消息幂等性和消息事务来实现。不同消息队列产品实现的方式不一致</li>
+                <p>谈及分布式事务，就必须涉及多个服务，多个数据源。既然还是属于事务，那么目的还是尽可能保证数据一致性，只不过手段上，不能像传统事务那么简单的在单数据源上解决问题。</p>
+<h3 id="例子引入"><a href="#例子引入" class="headerlink" title="例子引入"></a>例子引入</h3><p>下面笔者尝试根据自己有限的理论介绍清楚分布式事务，到底解决什么问题，各个解决方案有什么问题。<br>首先引入，分布式事务中常用例子，一个电商场景中用户购买商品，涉及仓储服务，订单服务，账户服务。<br><img src="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408141439335.png" srcset="/img/loading.gif" lazyload><br>用代码来表示就是这样的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderServiceImpl</span>&#123;<br>	<span class="hljs-meta">@Resource</span><br>	<span class="hljs-keyword">public</span> StockService stockService;<br>	<span class="hljs-meta">@Resource</span><br>	<span class="hljs-keyword">public</span> UserService userService;<br>	<span class="hljs-meta">@Resource</span><br>	<span class="hljs-keyword">public</span> OrderMapper orderMapper;<br><br>	<span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">order</span><span class="hljs-params">()</span>&#123;<br>		<span class="hljs-comment">// 保存订单</span><br>		orderMapper.save();<br>		<span class="hljs-comment">// 预扣库存</span><br>		stockService.save();<br>		<span class="hljs-comment">// 扣减资金</span><br>		userService.save();<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>上面的执行顺序还有待考量，在实践中尽可能<strong>将本地操作，和最容易出错的操作先执行</strong>。如果我们可以保证每个 sql 都可以执行成功，那么确实也不需要什么额外措施。然而，物理机器和网络是不可靠的，任意的 sql 执行失败，都会导致数据的不一致。<br>比如，我们很自然想到为方法加上本地事务（可以简单的为方法加上@Transaction 注解），当订单服务，库存服务的 sql 执行失败，都可以正确的回滚。而当账户服务的 sql 执行失败了，抛出了异常，订单服务可以正常回滚，然而库存服务无法感知到这一点，数据不一致了。<br>这里存在问题的根因是，不同服务之间的状态无法感知，那么，让服务之间互相感知一般有两种方式，一种是服务之间互相通信，另一种有一个中心管理者来管理所有服务，显然第一种方案的通信成本会随着服务数量增多而显著增加。所以，工程上，一般都是<strong>添加第三方管理者</strong>。<br><img src="https://cdn.jsdelivr.net/gh/ttoobbyyy/images/piclist/202408141439858.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h3><p>引入一个中心管理者，其核心思想其实就是二阶段提交。<br>第一阶段：各个微服务提交事务，并且将执行状态上报给中心管理者<br>第二阶段：中心管理者根据各个微服务的执行情况，给与反馈，只有所有微服务都成功了，才能提交分布式事务，否则就回滚</p>
+<h4 id="3PC"><a href="#3PC" class="headerlink" title="3PC"></a>3PC</h4><ol>
+<li>3pc 比 2pc 多了一个 can commit 阶段，减少了不必要的资源浪费。因为 2pc 在第一阶段会占用资源，而 3pc 在这个阶段不占用资源，只是校验一下 sql，如果不能执行，就直接返回，减少了资源占用。（这里资源占用是指对资源进行加锁了）</li>
+<li>引入超时机制。同时在协调者和参与者中都引入超时机制。<br> 2pc: 只有协调者有超时机制，超时后，发送回滚指令。<br> 3pc: 协调者和参与者都有超时机制。<br> 协调者超时: can commit，pre commit 中，如果收不到参与者的反馈，则协调者向参与者发送中断指令。<br> 参与者超时: pre commit 阶段，参与者进行中断; do commit 阶段，参与者进行提交。</li>
 </ol>
-<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/guyue35/article/details/125211496">共识、线性一致性、顺序一致性、最终一致性、强一致性讲解_最终一致性和强一致性-CSDN博客</a><br><a target="_blank" rel="noopener" href="https://qiankunli.github.io/2022/04/06/replica_consistency_level.html">多角度理解一致性 | 李乾坤的博客 (qiankunli.github.io)</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/O9Z5e_BzdxKcULHigYMkRg">Replication（下）：事务，一致性与共识 (qq.com)</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/LB5SR4ypQwDxzueI1ai2Kg">Replication（上）：常见的复制模型&amp;分布式系统的挑战 (qq.com)</a></p>
+<h3 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h3><p>基于上述的理论，工程上已经有多种模式可以使用了。</p>
+<h4 id="XA-模式"><a href="#XA-模式" class="headerlink" title="XA 模式"></a>XA 模式</h4><p>XA 其实可以理解为分布式事务处理（DTP，distribute transaction process）的一个处理规范协议，有很多数据库已经支持了。<br>XA 模式将组件分为三种角色<br>AP（application）：开启全局事务的应用程序<br>TM（transaction manager）：全局事务管理器，管理全局事务和各个子事务的状态<br>RM（resource manager）：资源管理器，参与者需要实现 XA 协议，因此一般都是数据库来承担。可见这个模式对代码侵入性比较小<br>执行过程：</p>
+<ol>
+<li>准备阶段：rm 本地提交本地子事务，但不写入最后的 commit record（即：不释放锁资源）。将执行结果通知给 tm</li>
+<li>执行阶段：tm 根据各个子事务的结果，让 rm 们进行 commit&#x2F;rollback<br>特点：</li>
+<li>强一致性</li>
+<li>性能差劲：整个过程有三次持久化（准备阶段 rm 写 redo 日志，tm 做状态持久化，提交阶段 rm 写入提交日志），两次远程调用。而且具有木桶效应，最慢的 rm 不完成任务，其他 rm 不能释放锁资源</li>
+<li>单点效应：rm 宕机了，可以在 rm 的提交结果过程引入超时机制，但 tm 的回复过程宕机了，无法处理。需要做好 tm 集群的高可用</li>
+</ol>
+<h4 id="AT-模式"><a href="#AT-模式" class="headerlink" title="AT 模式"></a>AT 模式</h4><p>在 AT 模式下，业务基本无感知的，都是通过 seate 做了一层代理来实现功能的。<br>事务执行过程：</p>
+<ol>
+<li>准备阶段：Seata 会拦截“业务 SQL”，首先解析 SQL 语义，找到“业务 SQL”要更新的业务数据，在业务数据被更新前，将其保存成“before image”，然后执行“业务 SQL”更新业务数据，在业务数据更新之后，再将其保存成“after image”，最后生成框架行锁。以上操作全部在一个数据库事务内完成。</li>
+<li>执行阶段：<ol>
+<li>commit：将“before image”和“after image”删除，释放框架行锁</li>
+<li>rollback：将对应的数据和“after image”进行对比，如果数据一致，说明这个过程没有发生脏写（虽然有行锁，但是这是框架层面的，不能排除有其他数据库连接修改了数据，还是可能会脏写），直接把数据还原为“before image”。如果数据不一致，则必须人工介入<br>可以看出 AT 模式和 XA 模式特别像，都是 2PC 的典型应用，不过有两点不同：</li>
+</ol>
+</li>
+<li>AT 模式的 RM 是业务应用，不是数据库处理的。</li>
+<li>AT 模式在准备阶段会直接提交本地事务，不会占用锁资源，避免了木桶效应。（这里值得一提的是，seata 虽然释放了本地锁资源，但是会保存一个框架级别的“全局锁”，这个锁是行锁，用于做写隔离效果的）<br>这个模式是一个使用比较广泛的分布式事务解决方案</li>
+</ol>
+<h4 id="TCC-模式"><a href="#TCC-模式" class="headerlink" title="TCC 模式"></a>TCC 模式</h4><p>上面介绍的两种模式都是业务侵入性比较小的方案。也正是因为它的业务侵入性比较小，导致它的灵活性不够，只能基于 sql 维度解决问题。<br>TCC 主要有三个步骤，也是两个阶段：</p>
+<ul>
+<li>Try：预留资源</li>
+<li>Confirm：执行的业务操作提交</li>
+<li>Cancel：预留的资源释放<br>这三个步骤的划分都是基于业务上的，我们在使用这个模式的时候首先就得把业务模型拆为两阶段。<br>举一个扣 100 元的例子，try 阶段就得冻结用户 100 元，confirm 阶段就直接提交，cancel 阶段就撤销冻结操作。但是，“冻结”操作我们有很多实现方式，可以新建一张金钱冻结数据表，或者依据什么高可靠的消息队列，不需要像 XA 模式保留锁资源，或者像 AT 模式保留一个框架全局行锁。这种模式的灵活性高很多，带来的性能也会高很多。就是对业务侵入比较强。<br>在此基础上再提出几个只有再业务层面才能实现的技术点：</li>
+</ul>
+<ol>
+<li>允许空回滚：try 操作失败了，rm 收到了 cancel 命令，此时 rm 没有发现事务 id 时也需要能回滚成功</li>
+<li>防悬挂设计：悬挂的意思是 cancel 比 try 更先执行。比如，try 操作超时了，cancel 回滚成功，此时 try 命令又来了，rm 就不应该可以再执行 try 命令了，否则就会数据不一致</li>
+<li>幂等性：其实，分布式系统的场景下，尽可能所有接口都设计成幂等的。因为网络是不稳定的，我们会通过重试操作来减少这种不稳定带来的影响，术语叫做“最大努力交付”。<br>这些技术点，基本都需要业务的参与。</li>
+</ol>
+<h4 id="SAGA-模式"><a href="#SAGA-模式" class="headerlink" title="SAGA 模式"></a>SAGA 模式</h4><p>这个模式的核心思想是将一个长的分布式事务，分解为一个个子事务，并且为子事务设计补偿操作。只要所有子事务可以正确提交，分布式事务就算正确提交了。如果有的子事务无法正确提交，那么有两种操作：</p>
+<ol>
+<li>正向恢复：重复尝试失败的子事务，做到“最大努力交付”，这种适用于事务必须要成功的场景</li>
+<li>反向恢复：执行目前已经执行了的子事务的补偿操作。如果补偿操作失败，也得做到“最大努力交付”。否则让人工介入<br>SAGA 必须保证所有子事务都得提交或者补偿，但 SAGA 系统本身也可能崩溃，所以系统本身也得做到高可用。<br>这个模式的业务侵入性也很强，因为补偿是在业务层面做的。这个和回滚不太一样，它需要业务的参与。比如扣 100 元钱，补偿是指加上 100 元，而回滚是撤销扣钱的操作。</li>
+</ol>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>事务的目的是保证数据一致性，本地事务的执行过程保证了无论系统在什么场景下，数据都是一致的。<br>但是在分布式的场景下，可以看到，这四种模式有各自的优缺点，没有一种模式适合所有的场景，因地制宜才是最好的选择。<br>分布式系统的引入，带来了机遇，也带来了技术挑战，分布式系统在极端场景下需要人工的介入才能保证数据一致性。<br>当然，除了分布式事务这种“很重”的操作，在很多业务场景中，我们还是会选择使用“最终一致性”这种性能更高的方案，还是要因“场景”制宜的。</p>
+<h3 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h3><p>seata 官网： <a target="_blank" rel="noopener" href="https://seata.io/zh-cn/docs/dev/mode/at-mode.html">Seata AT 模式</a><br>AT 模式的行锁：<a target="_blank" rel="noopener" href="https://juejin.cn/post/7164254193362927624">Seata AT模式原来是这样实现行锁的 - 掘金 (juejin.cn)</a><br>《凤凰架构》：<a target="_blank" rel="noopener" href="http://icyfenix.cn/">凤凰架构：构建可靠的大型分布式系统 | 凤凰架构 (icyfenix.cn)</a></p>
 
                 
               </div>
@@ -333,7 +345,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" class="category-chain-item">架构设计</a>
+  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" class="category-chain-item">数据库</a>
   
   
 
@@ -348,6 +360,10 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" class="print-no-link">#数据库</a>
+      
+        <a href="/tags/%E4%BA%8B%E5%8A%A1/" class="print-no-link">#事务</a>
+      
         <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" class="print-no-link">#分布式系统</a>
       
     </div>
@@ -360,8 +376,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>分布式系统知识大纲</div>
-      <div>http://ttoobbyyy.github.io/2024/03/29/分布式系统/</div>
+      <div>数据库事务--分布式事务(4)</div>
+      <div>http://ttoobbyyy.github.io/2024/08/14/数据库事务--分布式事务(4)/</div>
     </div>
     <div class="license-meta">
       
@@ -373,7 +389,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年3月29日</div>
+          <div>2024年8月14日</div>
         </div>
       
       
@@ -405,9 +421,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/08/14/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1--%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1(4)/" title="数据库事务--分布式事务(4)">
+                      <a href="/2024/08/30/%E7%94%9F%E6%B4%BB%E8%AE%B0%E5%BD%95--%E4%B9%9D%E5%AF%A8%E6%B2%9F%E7%89%88/" title="生活记录--九寨沟版">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">数据库事务--分布式事务(4)</span>
+                        <span class="hidden-mobile">生活记录--九寨沟版</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -415,8 +431,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/01/27/DDD%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="DDD学习笔记">
-                        <span class="hidden-mobile">DDD学习笔记</span>
+                      <a href="/2024/03/29/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="分布式系统知识大纲">
+                        <span class="hidden-mobile">分布式系统知识大纲</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
