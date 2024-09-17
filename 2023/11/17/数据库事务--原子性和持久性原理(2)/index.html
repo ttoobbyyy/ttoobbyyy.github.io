@@ -221,7 +221,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.1k 字
+          1.7k 字
         
       </span>
     
@@ -232,7 +232,7 @@
         
         
         
-          10 分钟
+          15 分钟
         
       </span>
     
@@ -280,7 +280,7 @@
 <p>说明一下，这个方案为什么能解决问题。<br>第一种情况：commit log 写失败，当作事务失败，这部分数据丢弃了，也没有影响到正常数据<br>第二种情况：commit log 写成功，事务成功，数据库数据的迁移，无论是否 crash，都可以利用 commit log 的数据进行恢复操作，重试几次，总会成功</p>
 </blockquote>
 <p><code>commit log</code> 的意义就是为正式数据提交保留了一个数据备份和事务是否提交的标识。<br>方案缺陷：大数据量变更场景下存在性能问题。因为数据库数据必须在 commit log 的数据提交之后才能开始移动。而 commit log 一般保留的是数据的物理备份，而不是 sql 一样的逻辑备份，大数据量场景下保存的数据会比较多。影响了整体系统的吞吐量。</p>
-<h4 id="方案二"><a href="#方案二" class="headerlink" title="方案二"></a>方案二</h4><p>再引入一个 undo log，它与 commit log 不太一样，它是保存数据发生变更之前的原版本，记录下原数据本身，就可以放心的在事务提交之前对数据进行修改。一旦发生什么问题，都可以回滚到原始版本数据。<br>而因为这个 log 数据很重要，一般也会对这个 log 加上 <code>commit log</code> 来防止 crash。</p>
+<h4 id="方案二"><a href="#方案二" class="headerlink" title="方案二"></a>方案二</h4><p>再引入一个 undo log，它与 commit log 不太一样，它是保存数据发生变更之前的原版本，记录下原数据本身，就可以放心的在事务提交之前对数据进行修改。一旦发生什么问题，都可以回滚到原始版本数据。</p>
 <h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>MySQL经典三个文件的对比</p>
 <table>
 <thead>
@@ -318,10 +318,19 @@
 <tr>
 <td>落盘时机</td>
 <td>redo日志落盘之前</td>
-<td>事务提交之前落盘</td>
-<td>落盘时机是在事务提交之前，借用了 redo log 的持久化能力</td>
+<td>事务提交之前落盘(因为redo log在内存有缓冲区，实际落盘时间可以配置的，默认是提交前落盘)</td>
+<td>落盘时机是在事务提交之前</td>
 </tr>
 </tbody></table>
+<h3 id="引申一下"><a href="#引申一下" class="headerlink" title="引申一下"></a>引申一下</h3><p>我们可能会看过bin log和redo log有一个<code>二阶段提交</code>。确保 binlog 和 redo log 在事务提交前保持一致。这个实际上和MySQL的持久化能力无关的，主要是为了保证MySQL的主库和从库的数据一致性。MySQL使用bin log做从库的数据同步，使用redo log做主库的崩溃恢复，两个日志内容保持一致才是可以保证主从的一致性，所以这个<code>二阶段提交</code>更多是一个分布式事务的操作。具体过程：</p>
+<ol>
+<li>第一阶段：准备阶段（Prepare Phase）</li>
+</ol>
+<p>当事务执行完毕，MySQL 准备提交时，它首先会将事务的修改记录写入 redo log，并将 redo log 标记为 PREPARED 状态。<br>此时，redo log 并不会立即提交，而是先记录事务的修改，但还未正式完成事务。<br>在此阶段，binlog 也会生成，并暂时存储在内存的缓存中。<br>目的：这一步确保如果系统在接下来崩溃，重启时 MySQL 可以通过 redo log 来判断这个事务是未完成的，不会丢失事务修改。</p>
+<ol start="2">
+<li>第二阶段：提交阶段（Commit Phase）</li>
+</ol>
+<p>MySQL 首先将 binlog 刷入磁盘，确保二进制日志持久化。<br>然后将 redo log 标记为 COMMITTED 状态，并将其刷入磁盘。这时，事务正式完成并提交。<br>目的：确保当事务提交时，binlog 和 redo log 都已经持久化到磁盘，并且保持一致。如果此时系统崩溃，可以使用这两个日志来恢复事务。</p>
 
                 
               </div>
